@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Contracts.MultiToken;
 using Awaken.Contracts.SwapExchangeContract;
+using Google.Protobuf.WellKnownTypes;
 using Shouldly;
 using Xunit;
 
@@ -14,6 +15,27 @@ namespace Awaken.Contracts.SwapExchange
         public async Task Test()
         {
             await Initialize();
+        }
+        
+        [Fact]
+        public async Task Set_Tests()
+        {
+            await Initialize();
+            var ownerSwapExchangeStub = GetSwapExchangeContractStub(OwnerPair);
+            var targetToken=await ownerSwapExchangeStub.TargetToken.CallAsync(new Empty());
+            targetToken.Value.ShouldBe(SymbolUsdt);
+            await ownerSwapExchangeStub.SetTargetToken.SendAsync(new StringValue
+            {
+                Value = SymbolElff
+            });
+            targetToken=await ownerSwapExchangeStub.TargetToken.CallAsync(new Empty());
+            targetToken.Value.ShouldBe(SymbolElff);
+
+            var receivor = await ownerSwapExchangeStub.Receivor.CallAsync(new Empty());
+            receivor.ShouldBe(receivor);
+            await ownerSwapExchangeStub.SetReceivor.SendAsync(Tom);
+            receivor = await ownerSwapExchangeStub.Receivor.CallAsync(new Empty());
+            receivor.ShouldBe(Tom);
         }
         
         [Fact]
