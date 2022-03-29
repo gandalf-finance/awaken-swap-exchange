@@ -17,5 +17,10 @@ namespace Awaken.Contracts.SwapExchangeContract
         
         // Common token symbol and cumulative amount after remove liquity.
         public SingletonState<TokenList> CumulativeTokenList { get; set; }
+        
+        // The minimum swap threshold for lptoken.
+        public Int64State LpTokenThreshold { get; set; }
+        // The minimum swap threshold for commonToken.
+        public Int64State CommonTokenThreshold { get; set; }
     } 
 }

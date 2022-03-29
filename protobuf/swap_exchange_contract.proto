@@ -33,12 +33,12 @@ service SwapExchangeContract {
   rpc SwapCommonTokens(SwapTokensInput) returns(google.protobuf.Empty){}
   rpc SetReceivor(aelf.Address) returns (google.protobuf.Empty){}
   rpc SetTargetToken(google.protobuf.StringValue) returns(google.protobuf.Empty){}
-
+  rpc SetSwapToTargetTokenThreshold(Thresholdinput) returns(google.protobuf.Empty){}
   // Inline transcation
   rpc RemoveLiquidityInline(RemoveLiquidityInlineInput) returns(google.protobuf.Empty){}
   rpc CumulativeTokenAmountInline(CumulativeTokenAmountInlineInput) returns(google.protobuf.Empty){}
   rpc SwapTokensInline(SwapTokensInlineInput) returns(google.protobuf.Empty){}
-
+  rpc SwapTokenToTargetInline(SwapTokenToTargetInlineInput) returns(google.protobuf.Empty){}
   //View
   rpc Owner(google.protobuf.Empty) returns(aelf.Address){
     option (aelf.is_view) = true;
@@ -51,49 +51,76 @@ service SwapExchangeContract {
   rpc Receivor(google.protobuf.Empty) returns(aelf.Address){
     option (aelf.is_view) = true;
   }
+
+  rpc Threshold(google.protobuf.Empty) returns(ThresholdOutput){
+    option (aelf.is_view) = true;
+  }
 }
 
 
 // input
+message SwapTokenToTargetInlineInput{
+  Token token =1;
+  Path  path_info=2;
+}
+message Thresholdinput{
+  int64 lp_token_threshold     = 1;
+  int64 common_token_threshold = 2;
+}
 message SwapTokensInlineInput{
   map<string, Path> path_map = 1;
 }
 
 message CumulativeTokenAmountInlineInput{
-  string tokenA = 1;
-  string tokenB = 2;
-  int64 tokenABefore = 3;
-  int64 tokenBBefore = 4;
+  string tokenA       = 1;
+  string tokenB       = 2;
+  int64  tokenABefore = 3;
+  int64  tokenBBefore = 4;
 }
 
 message InitializeInput{
-  aelf.Address Onwer = 1;
-  string target_token = 2;
-  aelf.Address Receivor = 3;
-  aelf.Address swap_contract = 4;
+  aelf.Address Onwer             = 1;
+  string       target_token      = 2;
+  aelf.Address Receivor          = 3;
+  aelf.Address swap_contract     = 4;
   aelf.Address lp_token_contract = 5;
 }
 
 message RemoveLiquidityInlineInput{
   Token token = 1;
-
 }
 
 message Path{
-  repeated string value = 1;
+  repeated string  value        = 1;
+  int64            slip_point   = 2;
+  aelf.BigIntValue expect_price = 3;
 }
 
 message SwapTokensInput{
-  map<string, Path> path_map = 1;
-  TokenList swap_token_list = 2;
+  map<string, Path> path_map        = 1;
+  TokenList         swap_token_list = 2;
 }
 
 message Token{
   string token_symbol = 1;
-  int64 amount = 2;
+  int64  amount       = 2;
 }
 
 message TokenList{
   repeated Token tokens_info = 1;
 }
+// output
+message ThresholdOutput{
+  int64 lp_token_threshold     = 1;
+  int64 common_token_threshold = 2;
+}
+// Event
+message SwapResultEvent{
+  option (aelf.is_event) = true;
+  string symbol          = 1;
+  bool   result          = 2;
+  int64  amount          = 3;
+  bool   is_lptoken      = 4;
+}
+
 

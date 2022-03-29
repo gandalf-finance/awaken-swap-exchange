@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using AElf.Sdk.CSharp;
+using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 
 namespace Awaken.Contracts.SwapExchangeContract
@@ -13,7 +14,8 @@ namespace Awaken.Contracts.SwapExchangeContract
     public partial class SwapExchangeContract : SwapExchangeContractContainer.SwapExchangeContractBase
     {
         private const string PairPrefix = "ALP";
-
+        private const string ExpansionCoefficient = "1000000000000000000";
+        
         public override Empty Initialize(InitializeInput input)
         {
             Assert(State.Owner.Value == null, "Contract already Initialized.");
@@ -60,6 +62,17 @@ namespace Awaken.Contracts.SwapExchangeContract
         private void OnlySelf()
         {
             Assert(Context.Self == Context.Sender, "No permission.");
+        }
+
+        private long BigIntValueToLong(BigIntValue inValue)
+        {
+            long amount = 0;
+            if (inValue != null && !long.TryParse(inValue.Value, out amount))
+            {
+                throw new AssertionException($"Fail to parse {inValue.Value} to long.");
+            }
+
+            return amount;
         }
     }
 }

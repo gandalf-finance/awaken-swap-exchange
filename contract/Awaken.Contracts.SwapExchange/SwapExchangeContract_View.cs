@@ -1,3 +1,4 @@
+using AElf.CSharp.Core;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 
@@ -10,6 +11,14 @@ namespace Awaken.Contracts.SwapExchangeContract
     /// </summary>
     public partial class SwapExchangeContract
     {   
+        /**
+         * Owner
+         */
+        public override Address Owner(Empty input)
+        {
+            return State.Owner.Value;
+        }
+
         /**
          * Receivor
          */
@@ -26,6 +35,15 @@ namespace Awaken.Contracts.SwapExchangeContract
             return new StringValue
             {
                 Value = State.TargetToken.Value
+            };
+        }
+
+        public override ThresholdOutput Threshold(Empty input)
+        {
+            return new ThresholdOutput
+            {
+                CommonTokenThreshold = State.CommonTokenThreshold.Value,
+                LpTokenThreshold = State.LpTokenThreshold.Value
             };
         }
     }

@@ -7,11 +7,14 @@ using AElf.Boilerplate.TestBase.SmartContractNameProvider;
 using AElf.Contracts.MultiToken;
 using AElf.ContractTestKit;
 using AElf.Cryptography.ECDSA;
+using AElf.CSharp.Core;
 using AElf.Types;
 using Awaken.Contracts.SwapExchangeContract;
 using Awaken.Contracts.Swap;
+using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;
+using Xunit;
 using CreateInput = AElf.Contracts.MultiToken.CreateInput;
 using GetBalanceInput = AElf.Contracts.MultiToken.GetBalanceInput;
 using InitializeInput = Awaken.Contracts.SwapExchangeContract.InitializeInput;
@@ -42,7 +45,7 @@ namespace Awaken.Contracts.SwapExchange
         internal const string SymbolAave = "AAVE";
         internal const string SymbolLink = "LINK";
         internal const long TotalSupply = 1000000_00000000;
-
+        internal const string ExpansionCoefficient = "1000000000000000000";
         
         private async Task AddLiquidity()
         {
@@ -344,6 +347,20 @@ namespace Awaken.Contracts.SwapExchange
         {
             return symbols.OrderBy(s => s).ToArray();
         }
+        
+        internal string ExtractTokenPairFromSymbol(string symbol)
+        {
+            // ReSharper disable once PossibleNullReferenceException
+            return symbol.StartsWith("ALP")
+                ? symbol.Substring(symbol.IndexOf("ALP", StringComparison.Ordinal) + "ALP".Length).Trim()
+                : symbol.Trim();
+        }
+
+        internal string[] ExtractTokensFromTokenPair(string tokenPair)
+        {   
+            return SortSymbols(tokenPair.Split('-'));
+        }
+        
         //===============================================================================================
 
         internal SwapExchangeContractContainer.SwapExchangeContractStub GetSwapExchangeContractStub(
@@ -373,5 +390,25 @@ namespace Awaken.Contracts.SwapExchange
         private Address LpTokenContractAddress => GetAddress(AwakenTokenContractAddressNameProvider.StringName);
         private Address SwapContractAddress => GetAddress(AwakenSwapContractAddressNameProvider.StringName);
         
+        
+        public static T DeserializeAElfEvent<T>(LogEvent logEvent) where T : IEvent<T>, new()
+        {
+            var message = new T();
+            message.MergeFrom(logEvent);
+            return message;
+        }
+    }
+    
+    public static class EventExtension
+    {
+        public static void MergeFrom<T>(this T eventData, LogEvent log) where T : IEvent<T>
+        {
+            foreach (var bs in log.Indexed)
+            {
+                eventData.MergeFrom(bs);
+            }
+
+            eventData.MergeFrom(log.NonIndexed);
+        }
     }
 }
