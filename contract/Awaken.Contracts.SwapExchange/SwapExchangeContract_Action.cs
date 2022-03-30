@@ -327,7 +327,6 @@ namespace Awaken.Contracts.SwapExchangeContract
             OnlySelf();
             var pathMap = input.PathMap;
             var tokensInfo = State.CumulativeTokenList.Value.TokensInfo;
-            Assert(tokensInfo.Count > 0, "The cumulative token list empty.");
             foreach (var token in tokensInfo)
             {
                 if (State.TargetToken.Value.Equals(token.TokenSymbol) && token.Amount > 0)

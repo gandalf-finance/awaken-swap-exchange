@@ -63,6 +63,9 @@ namespace Awaken.Contracts.SwapExchange
             await ownerSwapExchangeStub.SetReceivor.SendAsync(Tom);
             receivor = await ownerSwapExchangeStub.Receivor.CallAsync(new Empty());
             receivor.ShouldBe(Tom);
+
+            var ownerCallAsync = await ownerSwapExchangeStub.Owner.CallAsync(new Empty());
+            ownerCallAsync.ShouldBe(Owner);
         }
 
         [Fact]
@@ -528,5 +531,152 @@ namespace Awaken.Contracts.SwapExchange
             balanceReceiverAfter.Balance.ShouldBeGreaterThan(0);
             balanceReceiverAfter.Balance.ShouldBe(2915609314L);
         }
+         
+         [Fact]
+         public async Task Swap_Common_Token_Error_Test()
+         {
+             await Initialize();
+             var ownerSwapExchangeContractStub = GetSwapExchangeContractStub(OwnerPair);
+             await ownerSwapExchangeContractStub.SetSwapToTargetTokenThreshold.SendAsync(new Thresholdinput
+             {
+                 CommonTokenThreshold = 5000000000000000
+             });
+             var ownerSwapContractStub = GetSwapContractStub(OwnerPair);
+             var receiverCommonStub = GetCommonTokenContractStub(ReceiverPair);
+             var ownerCommonTokenStub = GetCommonTokenContractStub(OwnerPair);
+             
+             var path = new Dictionary<string, Path>();
+             var swapTokenList = new TokenList();
+             
+             {
+                 var expect = await ownerSwapContractStub.GetAmountsOut.CallAsync(new GetAmountsOutInput
+                 {
+                     Path = {SymbolAave, SymbolLink, SymbolUsdt},
+                     AmountIn = 10_00000000
+                 });
+                 var usdtOut = expect.Amount[2];
+                 usdtOut.ShouldBe(796065804L);
+                 var expectPrice = new BigIntValue(ExpansionCoefficient).Mul(usdtOut).Div(10_00000000);
+                 expectPrice.ShouldBe(796065804000000000);
+                 path[SymbolAave] = new Path
+                 {
+                     Value = {SymbolAave, SymbolLink, SymbolUsdt},
+                     ExpectPrice = expectPrice,
+                     SlipPoint = 5
+                 };
+             }
+             
+             swapTokenList.TokensInfo.Add(new SwapExchangeContract.Token
+             {
+                 TokenSymbol = SymbolAave,
+                 Amount = 10_00000000
+             });
+             
+             await ownerCommonTokenStub.Approve.SendAsync(new ApproveInput
+             {
+                 Amount = 10_00000000,
+                 Spender = DAppContractAddress,
+                 Symbol = SymbolAave
+             });
+            
+             var receipt = await ownerSwapExchangeContractStub.SwapCommonTokens.SendAsync(new SwapTokensInput
+             {
+                 PathMap = {path},
+                 SwapTokenList = swapTokenList
+             });
+             var logs = receipt.TransactionResult.Logs;
+             foreach (var logEvent in logs)
+             {
+                 var @equals = logEvent.Name.Equals("SwapResultEvent");
+                 if (equals)
+                 {
+                     var deserializeAElfEvent = DeserializeAElfEvent<SwapResultEvent>(logEvent);
+                     deserializeAElfEvent.Symbol.ShouldBe(SymbolAave);
+                     deserializeAElfEvent.IsLptoken.ShouldBe(false);
+                     deserializeAElfEvent.Result.ShouldBe(false);
+                 }
+             }
+         }
+         
+         [Fact]
+         public async Task Swap_Lp_Token_Fail_Test()
+         {
+             await Initialize();
+             var ownerSwapExchangeContractStub = GetSwapExchangeContractStub(OwnerPair);
+             var ownerSwapContractStub = GetSwapContractStub(OwnerPair);
+             var ownerLpTokenStub = GetLpTokenContractStub(OwnerPair);
+             await ownerSwapExchangeContractStub.SetSwapToTargetTokenThreshold.SendAsync(new Thresholdinput
+             {
+                 LpTokenThreshold = 500000000000
+             });
+             var path = new Dictionary<string, Path>();
+             var lp1 = GetTokenPairSymbol(SymbolLink, SymbolElff);
+             var swapTokenList = new TokenList();
+             var expectPrice = new BigIntValue(0);
+             {
+                 var swapInAmount = 20_00000000;
+                 var expect = await ownerSwapContractStub.GetAmountsOut.CallAsync(new GetAmountsOutInput
+                 {
+                     Path = {SymbolElff, SymbolLink, SymbolUsdt},
+                     AmountIn = swapInAmount
+                 });
+                 var usdtOut = expect.Amount.Last();
+                 expectPrice = new BigIntValue(ExpansionCoefficient).Mul(usdtOut).Div(swapInAmount);
+                 expectPrice.ShouldBe(191332058000000000);
+             }
+            
+             path[SymbolAave] = new Path
+             {
+                 Value = {$"ALP {SymbolAave}-{SymbolLink}", $"ALP {SymbolLink}-{SymbolUsdt}"},
+                 ExpectPrice = expectPrice,
+                 SlipPoint = 5
+             };
+             
+             path[SymbolElff] = new Path
+             {
+                 Value = {$"{SymbolElff}-{SymbolLink}", $"{SymbolLink}-{SymbolUsdt}"},
+                 ExpectPrice = expectPrice,
+                 SlipPoint = 5
+             };
+             
+             path[SymbolLink] = new Path
+             {
+                 Value = {$"{SymbolLink}-{SymbolUsdt}"},
+                 ExpectPrice = expectPrice,
+                 SlipPoint = 5
+             };
+             
+             swapTokenList.TokensInfo.Add(new SwapExchangeContract.Token
+             {
+                 TokenSymbol = lp1,
+                 Amount = 20_00000000
+             });
+             
+             await ownerLpTokenStub.Approve.SendAsync(new Token.ApproveInput
+             {
+                 Amount = 20_00000000,
+                 Spender = DAppContractAddress,
+                 Symbol = lp1
+             });
+             
+             var executionResult = await ownerSwapExchangeContractStub.SwapLpTokens.SendAsync(new SwapTokensInput
+             {
+                 PathMap = {path},
+                 SwapTokenList = swapTokenList
+             });
+
+             var logs = executionResult.TransactionResult.Logs;
+             foreach (var logEvent in logs)
+             {
+                 var @equals = logEvent.Name.Equals("SwapResultEvent");
+                 if (equals)
+                 {
+                     var deserializeAElfEvent = DeserializeAElfEvent<SwapResultEvent>(logEvent);
+                     deserializeAElfEvent.Symbol.ShouldBe(lp1);
+                     deserializeAElfEvent.IsLptoken.ShouldBe(true);
+                     deserializeAElfEvent.Result.ShouldBe(false);
+                 }
+             }
+         }
     }
 }
