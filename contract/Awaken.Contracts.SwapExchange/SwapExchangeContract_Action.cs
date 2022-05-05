@@ -438,5 +438,12 @@ namespace Awaken.Contracts.SwapExchangeContract
             }.Mul(swapOut).Div(token.Amount).Sub(expectPrice).Mul(100).Div(expectPrice);
             return acturalSlipPoint < 0 && slipPointLimit >= acturalSlipPoint.Mul(-1) || acturalSlipPoint >= 0;
         }
+
+        public override Empty ChangeOwner(ChangeOwnerInput input)
+        {
+            OnlyOwner();
+            State.Owner.Value = input.Value;
+            return new Empty();
+        }
     }
 }

@@ -39,6 +39,7 @@ service SwapExchangeContract {
   rpc CumulativeTokenAmountInline(CumulativeTokenAmountInlineInput) returns(google.protobuf.Empty){}
   rpc SwapTokensInline(SwapTokensInlineInput) returns(google.protobuf.Empty){}
   rpc SwapTokenToTargetInline(SwapTokenToTargetInlineInput) returns(google.protobuf.Empty){}
+  rpc ChangeOwner(ChangeOwnerInput) returns(google.protobuf.Empty){}
   //View
   rpc Owner(google.protobuf.Empty) returns(aelf.Address){
     option (aelf.is_view) = true;
@@ -59,9 +60,13 @@ service SwapExchangeContract {
 
 
 // input
+message ChangeOwnerInput{
+  aelf.Address value = 1;
+}
+
 message SwapTokenToTargetInlineInput{
-  Token token =1;
-  Path  path_info=2;
+  Token token     = 1;
+  Path  path_info = 2;
 }
 message Thresholdinput{
   int64 lp_token_threshold     = 1;
@@ -91,9 +96,9 @@ message RemoveLiquidityInlineInput{
 }
 
 message Path{
-  repeated string  value        = 1;
-  int64            slip_point   = 2;
-  aelf.BigIntValue expect_price = 3;
+  repeated string value        = 1;
+  int64           slip_point   = 2;
+  string          expect_price = 3;
 }
 
 message SwapTokensInput{

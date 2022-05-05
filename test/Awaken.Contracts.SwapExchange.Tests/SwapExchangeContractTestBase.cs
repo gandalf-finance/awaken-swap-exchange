@@ -337,7 +337,7 @@ namespace Awaken.Contracts.SwapExchange
         }
 
 
-        internal string GetTokenPairSymbol(String tokenA, string tokenB)
+        internal string GetTokenPairSymbol(string tokenA, string tokenB)
         {
             var symbols = SortSymbols(tokenA, tokenB);
             return $"ALP {symbols[0]}-{symbols[1]}";

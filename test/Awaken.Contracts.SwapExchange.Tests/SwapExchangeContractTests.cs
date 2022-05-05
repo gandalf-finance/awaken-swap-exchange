@@ -55,7 +55,7 @@ namespace Awaken.Contracts.SwapExchange
             {
                 Value = SymbolElff
             });
-            targetToken = await ownerSwapExchangeStub.TargetToken.CallAsync(new Empty());
+            targetToken =  await ownerSwapExchangeStub.TargetToken.CallAsync(new Empty());
             targetToken.Value.ShouldBe(SymbolElff);
 
             var receivor = await ownerSwapExchangeStub.Receivor.CallAsync(new Empty());
@@ -96,7 +96,7 @@ namespace Awaken.Contracts.SwapExchange
                 path[SymbolAave] = new Path
                 {
                     Value = {SymbolAave, SymbolLink, SymbolUsdt},
-                    ExpectPrice = expectPrice,
+                    ExpectPrice = expectPrice.Value,
                     SlipPoint = 5
                 };
             }
@@ -114,7 +114,7 @@ namespace Awaken.Contracts.SwapExchange
                 path[SymbolElff] = new Path
                 {
                     Value = {SymbolElff, SymbolLink, SymbolUsdt},
-                    ExpectPrice = expectPrice,
+                    ExpectPrice = expectPrice.Value,
                     SlipPoint = 5
                 };
             }
@@ -132,7 +132,7 @@ namespace Awaken.Contracts.SwapExchange
                 path[SymbolLink] = new Path
                 {
                     Value = {SymbolLink, SymbolUsdt},
-                    ExpectPrice = expectPrice,
+                    ExpectPrice = expectPrice.Value,
                     SlipPoint = 5
                 };
             }
@@ -246,7 +246,7 @@ namespace Awaken.Contracts.SwapExchange
                 path[SymbolAave] = new Path
                 {
                     Value = {$"ALP {SymbolAave}-{SymbolLink}", $"{SymbolLink}-{SymbolUsdt}"},
-                    ExpectPrice = expectPrice,
+                    ExpectPrice = expectPrice.Value,
                     SlipPoint = 5
                 };
             }
@@ -264,7 +264,7 @@ namespace Awaken.Contracts.SwapExchange
                 path[SymbolElff] = new Path
                 {
                     Value = {$"ALP {SymbolElff}-{SymbolLink}", $"{SymbolLink}-{SymbolUsdt}"},
-                    ExpectPrice = expectPrice,
+                    ExpectPrice = expectPrice.Value,
                     SlipPoint = 5
                 };
             }
@@ -282,7 +282,7 @@ namespace Awaken.Contracts.SwapExchange
                 path[SymbolLink] = new Path
                 {
                     Value = {$"{SymbolLink}-{SymbolUsdt}"},
-                    ExpectPrice = expectPrice,
+                    ExpectPrice = expectPrice.Value,
                     SlipPoint = 5
                 };
             }
@@ -349,6 +349,7 @@ namespace Awaken.Contracts.SwapExchange
             balanceReceiverAfter.Balance.ShouldBe(796065804L);
         }
 
+
         [Fact]
          public async Task Swap_LpToken_Test()
         {
@@ -385,21 +386,21 @@ namespace Awaken.Contracts.SwapExchange
             path[SymbolAave] = new Path
             {
                 Value = {$"ALP {SymbolAave}-{SymbolLink}", $"ALP {SymbolLink}-{SymbolUsdt}"},
-                ExpectPrice = expectPrice,
+                ExpectPrice = expectPrice.Value,
                 SlipPoint = 5
             };
 
             path[SymbolElff] = new Path
             {
                 Value = {$"{SymbolElff}-{SymbolLink}", $"{SymbolLink}-{SymbolUsdt}"},
-                ExpectPrice = expectPrice,
+                ExpectPrice = expectPrice.Value,
                 SlipPoint = 5
             };
 
             path[SymbolLink] = new Path
             {
-                Value = {$"{SymbolLink}-{SymbolUsdt}"},
-                ExpectPrice = expectPrice,
+                Value = {SymbolLink,SymbolUsdt},
+                ExpectPrice = expectPrice.Value,
                 SlipPoint = 5
             };
 
@@ -561,9 +562,10 @@ namespace Awaken.Contracts.SwapExchange
                  path[SymbolAave] = new Path
                  {
                      Value = {SymbolAave, SymbolLink, SymbolUsdt},
-                     ExpectPrice = expectPrice,
+                     ExpectPrice = expectPrice.Value,
                      SlipPoint = 5
-                 };
+                 }; 
+                 
              }
              
              swapTokenList.TokensInfo.Add(new SwapExchangeContract.Token
@@ -628,21 +630,21 @@ namespace Awaken.Contracts.SwapExchange
              path[SymbolAave] = new Path
              {
                  Value = {$"ALP {SymbolAave}-{SymbolLink}", $"ALP {SymbolLink}-{SymbolUsdt}"},
-                 ExpectPrice = expectPrice,
+                 ExpectPrice = expectPrice.Value,
                  SlipPoint = 5
              };
              
              path[SymbolElff] = new Path
              {
                  Value = {$"{SymbolElff}-{SymbolLink}", $"{SymbolLink}-{SymbolUsdt}"},
-                 ExpectPrice = expectPrice,
+                 ExpectPrice = expectPrice.Value,
                  SlipPoint = 5
              };
              
              path[SymbolLink] = new Path
              {
                  Value = {$"{SymbolLink}-{SymbolUsdt}"},
-                 ExpectPrice = expectPrice,
+                 ExpectPrice = expectPrice.Value,
                  SlipPoint = 5
              };
              
