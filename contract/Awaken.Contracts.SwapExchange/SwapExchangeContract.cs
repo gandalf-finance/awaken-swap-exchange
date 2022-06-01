@@ -15,18 +15,22 @@ namespace Awaken.Contracts.SwapExchangeContract
     {
         private const string PairPrefix = "ALP";
         private const string ExpansionCoefficient = "1000000000000000000";
+        public const long DefaultTargetTokenThreshold = 500_000000L;
         
         public override Empty Initialize(InitializeInput input)
         {
             Assert(State.Owner.Value == null, "Contract already Initialized.");
             State.Owner.Value = input.Onwer != null ? input.Onwer : Context.Sender;
-            
             State.Receivor.Value = input.Receivor;
+            Assert(!string.IsNullOrEmpty(input.TargetToken), "Target token not config.");
             State.TargetToken.Value = input.TargetToken;
             State.SwapContract.Value = input.SwapContract;
             State.LpTokenContract.Value = input.LpTokenContract;
             State.CommonTokenContract.Value =
                 Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
+            State.TargetTokenThreshold.Value = input.TargetTokenThreshold > 0
+                ? input.TargetTokenThreshold
+                : DefaultTargetTokenThreshold;
             return new Empty();
         }
 

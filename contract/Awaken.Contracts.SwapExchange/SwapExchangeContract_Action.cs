@@ -23,15 +23,12 @@ namespace Awaken.Contracts.SwapExchangeContract
         public override Empty SetSwapToTargetTokenThreshold(Thresholdinput input)
         {
             OnlyOwner();
-            if (input.LpTokenThreshold > 0)
-            {
-                State.LpTokenThreshold.Value = input.LpTokenThreshold;
-            }
-
-            if (input.CommonTokenThreshold > 0)
-            {
-                State.CommonTokenThreshold.Value = input.CommonTokenThreshold;
-            }
+            Assert(input.LpTokenThreshold > 0,
+                $"LpTokenThreshold should be greater than 0, input: {input.LpTokenThreshold}");
+            Assert(input.CommonTokenThreshold > 0,
+                $"CommonTokenThreshold should be greater than 0, input: {input.CommonTokenThreshold}");
+            State.CommonTokenThreshold.Value = input.CommonTokenThreshold;
+            State.LpTokenThreshold.Value = input.LpTokenThreshold;
             return new Empty();
         }
 
@@ -106,14 +103,12 @@ namespace Awaken.Contracts.SwapExchangeContract
 
         private bool CheckCommonTokenThresholdLimit(Token token, MapField<string, Path> pathMap)
         {
-            Assert(!string.IsNullOrEmpty(State.TargetToken.Value), "Target token not config.");
-            Assert(State.CommonTokenThreshold.Value > 0, "Common token threshold not config.");
+            var tokenThreshold = GetCommonTokenThreshold(token.TokenSymbol, true);
             var path = HandlePath(token.TokenSymbol, pathMap[token.TokenSymbol]);
             var result = ForecastSwapResult(token.Amount, path);
-            return result >= State.CommonTokenThreshold.Value;
+            return result >= tokenThreshold;
         }
-
-
+        
         /**
          * SwapLpTokens
          */
@@ -165,8 +160,6 @@ namespace Awaken.Contracts.SwapExchangeContract
          */
         private bool CheckLpTokenThresholdLimit(Token token, MapField<string, Path> pathMap)
         {
-            Assert(!string.IsNullOrEmpty(State.TargetToken.Value), "Target token not config.");
-            Assert(State.LpTokenThreshold.Value > 0, "LpToken threshold not config.");
             var tokenPair = ExtractTokenPairFromSymbol(token.TokenSymbol);
             //Get total supply.
             var totalSupplyObject = State.SwapContract.GetTotalSupply.Call(new StringList
@@ -183,6 +176,7 @@ namespace Awaken.Contracts.SwapExchangeContract
             });
             var tokenA = reserves.Results.First().SymbolA;
             long resultA;
+            var tokenAThreshold = GetLpTokenThreshold(tokenA, true);
             if (!tokenA.Equals(State.TargetToken.Value))
             {
                 var amountA = new BigIntValue(token.Amount).Mul(reserves.Results.First().ReserveA).Div(totalSupply);
@@ -195,6 +189,7 @@ namespace Awaken.Contracts.SwapExchangeContract
             }
             
             var tokenB = reserves.Results.First().SymbolB;
+            var tokenBThreshold = GetLpTokenThreshold(tokenB, true);
             long resultB;
             if (!tokenB.Equals(State.TargetToken.Value))
             {
@@ -207,8 +202,8 @@ namespace Awaken.Contracts.SwapExchangeContract
                 resultB = reserves.Results.First().ReserveB;
             }
 
-            return resultA >= State.LpTokenThreshold.Value &&
-                   resultB >= State.LpTokenThreshold.Value;
+            return resultA >= tokenAThreshold &&
+                   resultB >= tokenBThreshold;
         }
 
         private long ForecastSwapResult(long amountIn, RepeatedField<string> path)
@@ -362,8 +357,17 @@ namespace Awaken.Contracts.SwapExchangeContract
             var token = input.Token;
             var pathPair = input.PathInfo;
             var path = HandlePath(token.TokenSymbol, pathPair);
-            var result = CheckSlidingPoint(token, path, pathPair.SlipPoint, pathPair.ExpectPrice);
-            if (!result)
+            var tokenBalance = State.CommonTokenContract.GetBalance.Call(new GetBalanceInput
+            {
+                Owner = Context.Origin,
+                Symbol = token.TokenSymbol
+            });
+            var totalTokenBalance = tokenBalance.Balance.Add(token.Amount);
+            var targetEstimateSwapOut = ForecastSwapResult(totalTokenBalance, path);
+            var isReachTargetTokenThreshold = targetEstimateSwapOut >= State.TargetTokenThreshold.Value;
+            var result = CheckSlidingPoint(totalTokenBalance, targetEstimateSwapOut, pathPair.SlipPoint,
+                pathPair.ExpectPrice);
+            if (!isReachTargetTokenThreshold || !result)
             {
                 State.CommonTokenContract.Transfer.Send(new TransferInput
                 {
@@ -384,7 +388,7 @@ namespace Awaken.Contracts.SwapExchangeContract
             State.CommonTokenContract.Approve.Send(new AElf.Contracts.MultiToken.ApproveInput
             {
                 Spender = State.SwapContract.Value,
-                Amount = token.Amount,
+                Amount = totalTokenBalance,
                 Symbol = token.TokenSymbol
             });
 
@@ -393,13 +397,13 @@ namespace Awaken.Contracts.SwapExchangeContract
                 Path = {path},
                 Channel = "Dividend pool script",
                 To = State.Receivor.Value,
-                AmountIn = token.Amount,
+                AmountIn = totalTokenBalance,
                 AmountOutMin = 1,
                 Deadline = Context.CurrentBlockTime.AddSeconds(3)
             });
             Context.Fire(new SwapResultEvent
             {
-                Amount = token.Amount,
+                Amount = totalTokenBalance,
                 Result = true,
                 Symbol = token.TokenSymbol,
                 IsLptoken = false
@@ -427,15 +431,14 @@ namespace Awaken.Contracts.SwapExchangeContract
 
             return path;
         }
-       
-        private bool CheckSlidingPoint(Token token, RepeatedField<string> path, long slipPointLimit,
+
+        private bool CheckSlidingPoint(long tokenAmount, long targetTokenEstimateSwapOut, long slipPointLimit,
             BigIntValue expectPrice)
         {
-            var swapOut = ForecastSwapResult(token.Amount, path);
             var acturalSlipPoint = new BigIntValue
             {
                 Value = ExpansionCoefficient
-            }.Mul(swapOut).Div(token.Amount).Sub(expectPrice).Mul(100).Div(expectPrice);
+            }.Mul(targetTokenEstimateSwapOut).Div(tokenAmount).Sub(expectPrice).Mul(100).Div(expectPrice);
             return acturalSlipPoint < 0 && slipPointLimit >= acturalSlipPoint.Mul(-1) || acturalSlipPoint >= 0;
         }
 
@@ -444,6 +447,47 @@ namespace Awaken.Contracts.SwapExchangeContract
             OnlyOwner();
             State.Owner.Value = input.Value;
             return new Empty();
+        }
+
+        public override Empty SetTargetTokenThreshold(TargetTokenThresholdInput input)
+        {
+            OnlyOwner();
+            Assert(input.NewTargetTokenThreshold > 0,
+                $"Invalid input, targetTokenThreshold should be greater than 0, input: {input.NewTargetTokenThreshold}");
+            State.TargetTokenThreshold.Value = input.NewTargetTokenThreshold;
+            return new Empty();
+        }
+
+        private long GetCommonTokenThreshold(string token , bool isCheckThreshold = false)
+        {
+            var tokenThreshold = State.CommonTokenThreadMap[token];
+            if (tokenThreshold > 0)
+            {
+                return tokenThreshold;
+            }
+
+            tokenThreshold = State.CommonTokenThreshold.Value;
+            if (isCheckThreshold)
+            {
+                Assert(tokenThreshold > 0, "Common token threshold not config.");
+            }
+            return tokenThreshold;
+        }
+        
+        private long GetLpTokenThreshold(string token , bool isCheckThreshold = false)
+        {
+            var tokenThreshold = State.LpTokenThreadMap[token];
+            if (tokenThreshold > 0)
+            {
+                return tokenThreshold;
+            }
+
+            tokenThreshold = State.LpTokenThreshold.Value;
+            if (isCheckThreshold)
+            {
+                Assert(tokenThreshold > 0, "Common token threshold not config.");
+            }
+            return tokenThreshold;
         }
     }
 }

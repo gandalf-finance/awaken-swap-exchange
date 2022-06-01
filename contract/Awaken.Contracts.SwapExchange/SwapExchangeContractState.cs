@@ -22,5 +22,8 @@ namespace Awaken.Contracts.SwapExchangeContract
         public Int64State LpTokenThreshold { get; set; }
         // The minimum swap threshold for commonToken.
         public Int64State CommonTokenThreshold { get; set; }
+        public MappedState<string, long> CommonTokenThreadMap { get; set; }
+        public MappedState<string, long> LpTokenThreadMap { get; set; }
+        public Int64State TargetTokenThreshold { get; set; }
     } 
 }

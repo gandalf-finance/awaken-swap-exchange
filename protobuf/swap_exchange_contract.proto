@@ -34,6 +34,7 @@ service SwapExchangeContract {
   rpc SetReceivor(aelf.Address) returns (google.protobuf.Empty){}
   rpc SetTargetToken(google.protobuf.StringValue) returns(google.protobuf.Empty){}
   rpc SetSwapToTargetTokenThreshold(Thresholdinput) returns(google.protobuf.Empty){}
+  rpc SetTargetTokenThreshold(TargetTokenThresholdInput) returns(google.protobuf.Empty){}
   // Inline transcation
   rpc RemoveLiquidityInline(RemoveLiquidityInlineInput) returns(google.protobuf.Empty){}
   rpc CumulativeTokenAmountInline(CumulativeTokenAmountInlineInput) returns(google.protobuf.Empty){}
@@ -54,6 +55,10 @@ service SwapExchangeContract {
   }
 
   rpc Threshold(google.protobuf.Empty) returns(ThresholdOutput){
+    option (aelf.is_view) = true;
+  }
+  
+  rpc TargetTokenThreshold(google.protobuf.Empty) returns(TargetTokenThresholdOutput){
     option (aelf.is_view) = true;
   }
 }
@@ -89,6 +94,7 @@ message InitializeInput{
   aelf.Address Receivor          = 3;
   aelf.Address swap_contract     = 4;
   aelf.Address lp_token_contract = 5;
+  int64 target_token_threshold = 6;
 }
 
 message RemoveLiquidityInlineInput{
@@ -114,10 +120,19 @@ message Token{
 message TokenList{
   repeated Token tokens_info = 1;
 }
+
+message TargetTokenThresholdInput{
+  int64 new_target_token_threshold = 1;
+}
+    
 // output
 message ThresholdOutput{
   int64 lp_token_threshold     = 1;
   int64 common_token_threshold = 2;
+}
+
+message TargetTokenThresholdOutput{
+  int64 target_token_threshold     = 1;
 }
 // Event
 message SwapResultEvent{

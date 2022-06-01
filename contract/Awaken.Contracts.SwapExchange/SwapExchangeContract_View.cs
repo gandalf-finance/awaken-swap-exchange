@@ -46,5 +46,13 @@ namespace Awaken.Contracts.SwapExchangeContract
                 LpTokenThreshold = State.LpTokenThreshold.Value
             };
         }
+        
+        public override TargetTokenThresholdOutput TargetTokenThreshold(Empty input)
+        {
+            return new TargetTokenThresholdOutput
+            {
+                TargetTokenThreshold = State.TargetTokenThreshold.Value
+            };
+        }
     }
 }
