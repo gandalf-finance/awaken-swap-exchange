@@ -359,7 +359,7 @@ namespace Awaken.Contracts.SwapExchangeContract
             var path = HandlePath(token.TokenSymbol, pathPair);
             var tokenBalance = State.CommonTokenContract.GetBalance.Call(new GetBalanceInput
             {
-                Owner = Context.Origin,
+                Owner = Context.Self,
                 Symbol = token.TokenSymbol
             });
             var totalTokenBalance = tokenBalance.Balance.Add(token.Amount);
@@ -369,12 +369,12 @@ namespace Awaken.Contracts.SwapExchangeContract
                 pathPair.ExpectPrice);
             if (!isReachTargetTokenThreshold || !result)
             {
-                State.CommonTokenContract.Transfer.Send(new TransferInput
-                {
-                    Symbol = token.TokenSymbol,
-                    Amount = token.Amount,
-                    To = Context.Origin
-                });
+                // State.CommonTokenContract.Transfer.Send(new TransferInput
+                // {
+                //     Symbol = token.TokenSymbol,
+                //     Amount = token.Amount,
+                //     To = Context.Origin
+                // });
                 Context.Fire(new SwapResultEvent
                 {
                     Amount = token.Amount,
