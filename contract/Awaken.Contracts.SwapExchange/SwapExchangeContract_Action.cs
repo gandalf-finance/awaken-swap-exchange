@@ -352,14 +352,14 @@ namespace Awaken.Contracts.SwapExchangeContract
         }
 
         public override Empty SwapTokenToTargetInline(SwapTokenToTargetInlineInput input)
-        {   
+        {
             OnlySelf();
             var token = input.Token;
             var pathPair = input.PathInfo;
             var path = HandlePath(token.TokenSymbol, pathPair);
             var tokenBalance = State.CommonTokenContract.GetBalance.Call(new GetBalanceInput
             {
-                Owner = Context.Self,
+                Owner = Context.Origin,
                 Symbol = token.TokenSymbol
             });
             var totalTokenBalance = tokenBalance.Balance.Add(token.Amount);
@@ -369,12 +369,12 @@ namespace Awaken.Contracts.SwapExchangeContract
                 pathPair.ExpectPrice);
             if (!isReachTargetTokenThreshold || !result)
             {
-                // State.CommonTokenContract.Transfer.Send(new TransferInput
-                // {
-                //     Symbol = token.TokenSymbol,
-                //     Amount = token.Amount,
-                //     To = Context.Origin
-                // });
+                State.CommonTokenContract.Transfer.Send(new TransferInput
+                {
+                    Symbol = token.TokenSymbol,
+                    Amount = token.Amount,
+                    To = Context.Origin
+                });
                 Context.Fire(new SwapResultEvent
                 {
                     Amount = token.Amount,
@@ -385,6 +385,13 @@ namespace Awaken.Contracts.SwapExchangeContract
                 return new Empty();
             }
 
+            State.CommonTokenContract.TransferFrom.Send(new AElf.Contracts.MultiToken.TransferFromInput
+            {
+                Symbol = token.TokenSymbol,
+                From = Context.Origin,
+                To = Context.Self,
+                Amount = tokenBalance.Balance
+            });
             State.CommonTokenContract.Approve.Send(new AElf.Contracts.MultiToken.ApproveInput
             {
                 Spender = State.SwapContract.Value,
