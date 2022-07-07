@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>netcoreapp3.1</TargetFramework>
+        <TargetFramework>net6.0</TargetFramework>
         <RootNamespace>AElf.Boilerplate.TestBase</RootNamespace>
         <IsPackable>false</IsPackable>
     </PropertyGroup>
@@ -11,12 +11,18 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="AElf.ContractDeployer" Version="1.0.0" />
-        <PackageReference Include="AElf.EconomicSystem" Version="1.0.0" />
-        <PackageReference Include="AElf.GovernmentSystem" Version="1.0.0" />
+        <PackageReference Include="AElf.ContractDeployer" Version="1.2.0" />
+        <PackageReference Include="AElf.Contracts.Genesis" Version="1.2.0" />
+        <PackageReference Include="AElf.CrossChain" Version="1.2.0" />
+        <PackageReference Include="AElf.CSharp.Core" Version="1.2.0" />
+        <PackageReference Include="AElf.EconomicSystem" Version="1.2.0" />
+        <PackageReference Include="AElf.GovernmentSystem" Version="1.2.0" />
+        <PackageReference Include="AElf.Kernel.Node" Version="1.2.0" />
+        <PackageReference Include="AElf.Runtime.CSharp.Core" Version="1.2.0" />
         <PackageReference Include="coverlet.msbuild" Version="2.5.1" />
         <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.3.0" />
         <PackageReference Include="Shouldly" Version="3.0.2" />
+        <PackageReference Include="Volo.Abp.Core" Version="5.2.2" />
         <PackageReference Include="xunit" Version="2.4.1" />
         <PackageReference Include="xunit.runner.console" Version="2.4.1" />
         <PackageReference Include="xunit.runner.visualstudio" Version="2.4.1" />
@@ -27,37 +33,37 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="AElf.Contracts.Configuration" Version="1.0.0">
+        <PackageReference Include="AElf.Contracts.Configuration" Version="1.2.0">
             <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
             <OutputItemType>Contract</OutputItemType>
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </PackageReference>
-        <PackageReference Include="AElf.Contracts.Consensus.AEDPoS" Version="1.0.0">
+        <PackageReference Include="AElf.Contracts.Consensus.AEDPoS" Version="1.2.0">
             <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
             <OutputItemType>Contract</OutputItemType>
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </PackageReference>
-        <PackageReference Include="AElf.Contracts.CrossChain" Version="1.0.0">
+        <PackageReference Include="AElf.Contracts.CrossChain" Version="1.2.0">
             <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
             <OutputItemType>Contract</OutputItemType>
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </PackageReference>
-        <PackageReference Include="AElf.Contracts.Election" Version="1.0.0">
+        <PackageReference Include="AElf.Contracts.Election" Version="1.2.0">
             <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
             <OutputItemType>Contract</OutputItemType>
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </PackageReference>
-        <PackageReference Include="AElf.Contracts.Profit" Version="1.0.0">
+        <PackageReference Include="AElf.Contracts.Profit" Version="1.2.0">
             <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
             <OutputItemType>Contract</OutputItemType>
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </PackageReference>
-        <PackageReference Include="AElf.Contracts.MultiToken" Version="1.0.0">
+        <PackageReference Include="AElf.Contracts.MultiToken" Version="1.2.0">
             <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
             <OutputItemType>Contract</OutputItemType>
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </PackageReference>
-        <PackageReference Include="AElf.Contracts.Parliament" Version="1.0.0">
+        <PackageReference Include="AElf.Contracts.Parliament" Version="1.2.0">
             <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
             <OutputItemType>Contract</OutputItemType>
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -67,7 +73,7 @@
             <OutputItemType>Contract</OutputItemType>
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </PackageReference>
-        <PackageReference Include="AElf.Contracts.TokenConverter" Version="1.0.0">
+        <PackageReference Include="AElf.Contracts.TokenConverter" Version="1.2.0">
             <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
             <OutputItemType>Contract</OutputItemType>
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -77,12 +83,12 @@
             <OutputItemType>Contract</OutputItemType>
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </PackageReference>
-        <PackageReference Include="AElf.Contracts.Economic" Version="1.0.0">
+        <PackageReference Include="AElf.Contracts.Economic" Version="1.2.0">
             <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
             <OutputItemType>Contract</OutputItemType>
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </PackageReference>
-        <PackageReference Include="AElf.Contracts.Referendum" Version="1.0.0">
+        <PackageReference Include="AElf.Contracts.Referendum" Version="1.2.0">
             <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
             <OutputItemType>Contract</OutputItemType>
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -92,7 +98,7 @@
             <OutputItemType>Contract</OutputItemType>
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </PackageReference>
-        <PackageReference Include="AElf.Contracts.TokenHolder" Version="1.0.0">
+        <PackageReference Include="AElf.Contracts.TokenHolder" Version="1.2.0">
             <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
             <OutputItemType>Contract</OutputItemType>
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
